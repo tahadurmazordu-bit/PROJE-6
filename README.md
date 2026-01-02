@@ -214,9 +214,33 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function respond(q) {
-    if (q.toLowerCase().includes('merhaba')) return 'Merhaba! Sana nasıl yardımcı olabilirim?';
-    if (q.toLowerCase().includes('yapay zeka')) return 'Yapay zeka, makinelerin öğrenmesini sağlayan teknolojidir.';
-    return 'Sorunu anladım. Biraz daha açmak ister misin?';
+    const style = document.getElementById('style').value;
+    const length = document.getElementById('length').value;
+    const text = q.toLowerCase();
+
+    let answer = '';
+
+    if (text.includes('merhaba') || text.includes('selam')) {
+      answer = 'Merhaba! Sana bugün nasıl yardımcı olabilirim?';
+    } else if (text.includes('yapay zeka')) {
+      answer = 'Yapay zeka; bilgisayarların öğrenme, analiz etme ve karar verme gibi insan benzeri yetenekler kazanmasını sağlayan teknolojilerin genel adıdır.';
+    } else if (text.includes('nasılsın')) {
+      answer = 'İyiyim, teşekkür ederim 🙂 Sen nasılsın?';
+    } else if (text.includes('web sitesi')) {
+      answer = 'Bir web sitesi; tasarım (HTML/CSS), işlevsellik (JavaScript) ve bazen de sunucu tarafı (backend) bileşenlerinden oluşur. İstersen birlikte bir tane planlayabiliriz.';
+    } else if (text.includes('kod')) {
+      answer = 'Kod, bilgisayara ne yapacağını anlatan talimatlardır. Hangi dil veya hangi konuda kod yazmak istiyorsun?';
+    } else {
+      answer = 'Sorunu anladım. Biraz daha detay verirsen sana daha net yardımcı olabilirim.';
+    }
+
+    if (style === 'samimi') answer = '🙂 ' + answer;
+    if (style === 'resmi') answer = 'Bilgilendirme: ' + answer;
+
+    if (length === 'kisa') answer = answer.split('.').slice(0,1).join('.') + '.';
+    if (length === 'uzun') answer += ' İstersen bunu adım adım, örneklerle daha ayrıntılı şekilde de anlatabilirim.';
+
+    return answer;
   }
 
   window.openSettings = () => settings.style.display = 'flex';

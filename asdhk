@@ -1,0 +1,26 @@
+# hello world
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Chat – ChatGPT Tarzı</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{--bg:#f7f7f8;--sidebar:#ececf1;--panel:#fff;--text:#111827;--primary:#10a37f}
+    body.dark{--bg:#343541;--sidebar:#202123;--panel:#444654;--text:#e5e7eb}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text);height:100vh;display:flex}
+    .sidebar{width:260px;background:var(--sidebar);display:flex;flex-direction:column;border-right:1px solid rgba(0,0,0,.1)}
+    .sidebar h2{padding:16px;margin:0;font-size:16px}
+    .history{flex:1;overflow-y:auto}
+    .history div{padding:12px 16px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.05)}
+    .history div:hover{background:rgba(0,0,0,.05)}
+    .sidebar-bottom{padding:12px;border-top:1px solid rgba(0,0,0,.1)}
+    .sidebar-bottom button{width:100%;padding:10px;border-radius:8px;border:none;background:var(--panel);cursor:pointer}
+    .main{flex:1;display:flex;flex-direction:column}
+    .topbar{padding:14px 20px;border-bottom:1px solid rgba(0,0,0,.1)}
+    .chat{flex:1;padding:20px;overflow-y:auto}
+    .msg{max-width:700px;margin-bottom:16px}
+    .user{font-weight:600}
+    .ai{color:var(--primary)}
+    .input-area{padding:16px;border-top:1px solid rgba(0,0,0,.1);display:flex;gap:

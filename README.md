@@ -2,224 +2,227 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Yapay Zeka Web Sitesi</title>
+  <title>AI Chat – ChatGPT Tarzı</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
-      --bg: #f4f4f4;
-      --text: #222;
-      --card: #ffffff;
-      --primary: #4f46e5;
+      --bg: #f7f7f8;
+      --sidebar: #ececf1;
+      --panel: #ffffff;
+      --text: #111827;
+      --primary: #10a37f;
     }
     body.dark {
-      --bg: #0f172a;
+      --bg: #343541;
+      --sidebar: #202123;
+      --panel: #444654;
       --text: #e5e7eb;
-      --card: #1e293b;
-      --primary: #6366f1;
+      --primary: #10a37f;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
+      height: 100vh;
+      display: flex;
     }
-    .container {
-      max-width: 420px;
-      margin: 60px auto;
-      background: var(--card);
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.1);
+
+    /* === SOL SIDEBAR === */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(0,0,0,.1);
     }
-    h2, h3, h4 { text-align: center; }
-    input, button, select {
+    .sidebar h2 {
+      padding: 16px;
+      margin: 0;
+      font-size: 16px;
+    }
+    .history {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .history div {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+    .history div:hover { background: rgba(0,0,0,.05); }
+
+    .sidebar-bottom {
+      padding: 12px;
+      border-top: 1px solid rgba(0,0,0,.1);
+    }
+    .sidebar-bottom button {
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
       border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: var(--primary);
-      color: white;
       border: none;
+      background: var(--panel);
       cursor: pointer;
     }
-    button.secondary {
-      background: transparent;
-      color: var(--primary);
-    }
-    .link {
-      text-align: center;
-      margin-top: 10px;
-      cursor: pointer;
-      color: var(--primary);
-    }
-    .hidden { display: none; }
-    .topbar {
+
+    /* === ANA PANEL === */
+    .main {
+      flex: 1;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
+      flex-direction: column;
+    }
+    .topbar {
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0,0,0,.1);
+      font-weight: 600;
     }
     .chat {
-      background: var(--bg);
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .msg {
+      max-width: 700px;
+      margin-bottom: 16px;
+    }
+    .user { font-weight: 600; }
+    .ai { color: var(--primary); }
+
+    .input-area {
+      padding: 16px;
+      border-top: 1px solid rgba(0,0,0,.1);
+      display: flex;
+      gap: 10px;
+    }
+    .input-area input {
+      flex: 1;
       padding: 12px;
-      border-radius: 8px;
-      min-height: 120px;
-      margin-bottom: 10px;
-      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    .input-area button {
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+    }
+
+    /* === AYARLAR MODAL === */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: var(--panel);
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+    }
+    .modal-content select, .modal-content button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
     }
   </style>
 </head>
 <body>
 
-<!-- GİRİŞ -->
-<div class="container" id="loginBox">
-  <h2>Giriş Yap</h2>
-  <input id="loginUser" placeholder="Kullanıcı Adı" />
-  <input id="loginPass" type="password" placeholder="Şifre" />
-  <button onclick="login()">Giriş Yap</button>
-  <div class="link" onclick="showRegister()">Kayıt Ol</div>
-</div>
-
-<!-- KAYIT -->
-<div class="container hidden" id="registerBox">
-  <h2>Kayıt Ol</h2>
-  <input id="regUser" placeholder="Kullanıcı Adı" />
-  <input id="regPass" type="password" placeholder="Şifre" />
-  <button onclick="register()">Kayıt Ol</button>
-  <div class="link" onclick="showLogin()">Girişe Dön</div>
-</div>
-
-<!-- PANEL -->
-<div class="container hidden" id="panelBox">
-  <div class="topbar">
-    <strong id="welcome"></strong>
-    <button class="secondary" onclick="openSettings()">⚙️ Ayarlar</button>
+<div class="sidebar">
+  <h2>💬 Sohbetler</h2>
+  <div class="history" id="history"></div>
+  <div class="sidebar-bottom">
+    <button onclick="openSettings()">⚙️ Ayarlar</button>
   </div>
+</div>
 
-  <h3>🧠 Yapay Zeka Sohbet</h3>
-  <div class="chat" id="messages"></div>
+<div class="main">
+  <div class="topbar">🤖 Yapay Zeka Sohbet</div>
+  <div class="chat" id="chat"></div>
+  <div class="input-area">
+    <input id="input" placeholder="Mesaj yaz…" />
+    <button onclick="send()">Gönder</button>
+  </div>
+</div>
 
-  <input id="aiInput" placeholder="Bir soru sor veya görev yaz..." />
-  <button onclick="askAI()">Gönder</button>
-  <button onclick="buildSite()" style="margin-top:10px">🌐 Siteyi Otomatik Kur</button>
-  <button onclick="buildApp()" style="margin-top:10px">📱 Uygulamayı Otomatik Kur</button>
-
-  <!-- AYARLAR -->
-  <div id="settings" class="hidden">
-    <h4>⚙️ Ayarlar</h4>
-    <label>Cevap Stili</label>
+<div class="modal" id="settings">
+  <div class="modal-content">
+    <h3>Ayarlar</h3>
     <select id="style">
       <option value="normal">Normal</option>
       <option value="samimi">Samimi</option>
       <option value="resmi">Resmi</option>
     </select>
-
-    <label>Cevap Uzunluğu</label>
     <select id="length">
       <option value="kisa">Kısa</option>
       <option value="orta" selected>Orta</option>
       <option value="uzun">Uzun</option>
     </select>
-
     <button onclick="toggleTheme()">🌙 Tema Değiştir</button>
     <button onclick="closeSettings()">Kapat</button>
   </div>
-
-  <hr />
-  <input id="newPass" type="password" placeholder="Yeni Şifre" />
-  <button onclick="changePassword()">Şifre Değiştir</button>
-  <button onclick="logout()" style="margin-top:10px">Çıkış Yap</button>
 </div>
 
 <script>
-// === DOM HAZIR OLUNCA BAŞLAT ===
 document.addEventListener('DOMContentLoaded', () => {
-  const loginBox = document.getElementById('loginBox');
-  const registerBox = document.getElementById('registerBox');
-  const panelBox = document.getElementById('panelBox');
-  const welcome = document.getElementById('welcome');
-  const messages = document.getElementById('messages');
-  const aiInput = document.getElementById('aiInput');
-  const styleSelect = document.getElementById('style');
-  const lengthSelect = document.getElementById('length');
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('input');
+  const historyBox = document.getElementById('history');
   const settings = document.getElementById('settings');
 
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  let currentUser = null;
+  let chats = JSON.parse(localStorage.getItem('chats') || '[]');
 
-  function saveUsers(){ localStorage.setItem('users', JSON.stringify(users)); }
-
-  window.showRegister = () => { loginBox.classList.add('hidden'); registerBox.classList.remove('hidden'); };
-  window.showLogin = () => { registerBox.classList.add('hidden'); loginBox.classList.remove('hidden'); };
-
-  window.register = () => {
-    const u = regUser.value.trim();
-    const p = regPass.value;
-    if (!u || !p) return alert('Bilgiler eksik');
-    if (users[u]) return alert('Bu kullanıcı zaten var');
-    users[u] = p; saveUsers(); alert('Kayıt başarılı'); showLogin();
-  };
-
-  window.login = () => {
-    const u = loginUser.value.trim();
-    const p = loginPass.value;
-    if (!users[u]) return alert('❌ Kullanıcı bulunamadı');
-    if (users[u] !== p) return alert('❌ Şifre hatalı');
-    currentUser = u;
-    loginBox.classList.add('hidden'); panelBox.classList.remove('hidden');
-    welcome.innerText = 'Hoşgeldin ' + u;
-  };
-
-  window.logout = () => { currentUser = null; panelBox.classList.add('hidden'); loginBox.classList.remove('hidden'); };
-
-  window.changePassword = () => {
-    if (!newPass.value) return alert('Yeni şifre gir');
-    users[currentUser] = newPass.value; saveUsers(); alert('Şifre değiştirildi'); newPass.value='';
-  };
-
-  window.askAI = () => {
-    const q = aiInput.value.trim(); if (!q) return;
-    messages.innerHTML += `<div><b>👤 Sen:</b> ${q}</div>`;
-    messages.innerHTML += `<div><b>🤖 AI:</b> ${normalChatResponse(q)}</div>`;
-    aiInput.value='';
-  };
-
-  function normalChatResponse(q){
-    let base='';
-    if(styleSelect.value==='samimi') base='🙂 ';
-    if(styleSelect.value==='resmi') base='Bilgilendirme: ';
-    let ans='Bu konuda sana yardımcı olmaya çalışırım.';
-    if(q.toLowerCase().includes('merhaba')) ans='Merhaba! Sana nasıl yardımcı olabilirim?';
-    if(q.toLowerCase().includes('yapay zeka')) ans='Yapay zeka, makinelerin öğrenmesini sağlayan teknolojidir.';
-    if(lengthSelect.value==='uzun') ans+=' Daha detay istersen anlatabilirim.';
-    if(lengthSelect.value==='kisa') ans=ans.split('.')[0]+'.';
-    return base+ans;
+  function renderHistory() {
+    historyBox.innerHTML = '';
+    chats.forEach((c, i) => {
+      const d = document.createElement('div');
+      d.textContent = c.title;
+      d.onclick = () => loadChat(i);
+      historyBox.appendChild(d);
+    });
   }
 
-  window.buildSite = () => {
-    const html = `<!DOCTYPE html><html><body><h1>AI Site</h1><p>Kullanıcı: ${currentUser}</p></body></html>`;
-    downloadFile('ai-site.html', html);
-    messages.innerHTML += `<div><b>🌐 Sistem:</b> Site oluşturuldu.</div>`;
-  };
-
-  window.buildApp = () => {
-    downloadFile('AIApp.jsx', 'export default function App(){}');
-    messages.innerHTML += `<div><b>📱 Sistem:</b> Uygulama taslağı oluşturuldu.</div>`;
-  };
-
-  function downloadFile(name, content){
-    const blob=new Blob([content]);
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download=name; a.click();
-    URL.revokeObjectURL(a.href);
+  function loadChat(i) {
+    chat.innerHTML = '';
+    chats[i].messages.forEach(m => {
+      chat.innerHTML += `<div class='msg'><span class='${m.role}'>${m.role === 'user' ? 'Sen' : 'AI'}:</span> ${m.text}</div>`;
+    });
   }
 
-  window.openSettings = () => settings.classList.remove('hidden');
-  window.closeSettings = () => settings.classList.add('hidden');
+  window.send = () => {
+    const text = input.value.trim();
+    if (!text) return;
+    const ai = respond(text);
+
+    const convo = { title: text.slice(0, 20), messages: [
+      { role: 'user', text },
+      { role: 'ai', text: ai }
+    ]};
+
+    chats.unshift(convo);
+    localStorage.setItem('chats', JSON.stringify(chats));
+    renderHistory();
+    loadChat(0);
+    input.value = '';
+  };
+
+  function respond(q) {
+    if (q.toLowerCase().includes('merhaba')) return 'Merhaba! Sana nasıl yardımcı olabilirim?';
+    if (q.toLowerCase().includes('yapay zeka')) return 'Yapay zeka, makinelerin öğrenmesini sağlayan teknolojidir.';
+    return 'Sorunu anladım. Biraz daha açmak ister misin?';
+  }
+
+  window.openSettings = () => settings.style.display = 'flex';
+  window.closeSettings = () => settings.style.display = 'none';
   window.toggleTheme = () => document.body.classList.toggle('dark');
+
+  renderHistory();
 });
 </script>
 </body>
